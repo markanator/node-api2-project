@@ -24,27 +24,46 @@ router.post("/api/posts", (req, res) => {
         });
 });
 
-router.post("/api/posts/:id/comments", async (req, res) => {
-    if (!req.body.text) {
-        return res.status(400).json({
-            message: "Please provide text for the comment.",
-        });
-    }
+router.post("/api/posts/:id/comments", (req, res) => {
+    const { id } = req.params;
+    // comment in full
+    const combinedComment = { ...req.body, post_id: id };
 
-    db.insertComment(req.body.text)
-        .then((comment) => {
-            if (!comment) {
-                return res.status(404).json({
-                    message: "post not found",
+    db.findById(req.params.id)
+        .then((post) => {
+            // if returned value is empty array === no post exists
+            if (!post) {
+                res.status(404).json({
+                    message: "there is no post with that id",
+                    post,
                 });
+            } else {
+                db.insertComment(combinedComment)
+                    .then((comment) => {
+                        if (comment) {
+                            res.status(201).json({
+                                message: "Created and posted!",
+                                comment,
+                            });
+                        } else {
+                            res.status(404).json({
+                                message: "No post with that id",
+                                comment,
+                            });
+                        }
+                    })
+                    .catch((error) => {
+                        res.status(500).json({
+                            message: "Server malfunction COMMENT STUFF",
+                            error,
+                        });
+                    });
             }
-
-            res.status(201).json(comment);
         })
-        .catch((error) => {
+        .catch((postError) => {
             res.status(500).json({
-                message:
-                    "There was an error while saving the comment to the database",
+                message: "Server malfunction POST ID",
+                error,
             });
         });
 });
@@ -138,3 +157,6 @@ router.put("/api/posts/:id", (req, res) => {
 });
 
 module.exports = router;
+
+// post id
+// foriegn key that links comments to posts
