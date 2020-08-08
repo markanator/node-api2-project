@@ -24,39 +24,27 @@ router.post("/api/posts", (req, res) => {
         });
 });
 
-router.post("/api/posts/:id/comments", (req, res) => {
+router.post("/api/posts/:id/comments", async (req, res) => {
     if (!req.body.text) {
         return res.status(400).json({
             message: "Please provide text for the comment.",
         });
     }
 
-    // use DB to check for post
-    db.findById(req.params.id)
+    db.insertComment(req.body.text)
         .then((comment) => {
-            // vibe check
-            if (comment) {
-                // passed vibe check
-                db.insertComment(req.body)
-                    .then((comment) => {
-                        res.status(201).json(comment);
-                    })
-                    .catch((error) => {
-                        res.status(500).json({
-                            message: "Could not get user posts",
-                        });
-                    });
-            } else {
-                // failed vibe check
-                res.status(404).json({
-                    message: "The post with the specified ID does not exist.",
+            if (!comment) {
+                return res.status(404).json({
+                    message: "post not found",
                 });
             }
+
+            res.status(201).json(comment);
         })
         .catch((error) => {
-            // super failed vibe check
             res.status(500).json({
-                message: "Could not get user posts",
+                message:
+                    "There was an error while saving the comment to the database",
             });
         });
 });
