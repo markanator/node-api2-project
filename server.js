@@ -7,8 +7,8 @@ const postsRouter = require("./posts/posts-router");
 const server = express();
 const Port = process.env.PORT || 8080;
 
-server.use(cors());
 server.use(express.json());
+server.use(cors());
 
 server.get("/", (req, res) => {
     res.json({
